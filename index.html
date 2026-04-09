@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>業務改善助成金・賃金計算管理台帳（従業員コード対応）</title>
+    <style>
+        :root { --primary: #0369a1; --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --danger: #dc2626; --success: #16a34a; }
+        body { font-family: sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; font-size: 14px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; border: 1px solid var(--border); }
+        h1 { font-size: 1.4rem; color: #0c4a6e; text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary); padding-bottom: 10px; }
+        
+        .exclusion-box { background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.8rem; color: #991b1b; }
+        .config-panel { background: #f0f9ff; border: 1px solid var(--primary); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        
+        .input-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 25px; }
+        .form-section { border-right: 1px solid #e2e8f0; padding-right: 20px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; font-size: 0.85rem; color: #475569; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #94a3b8; border-radius: 4px; box-sizing: border-box; }
+        
+        .allowance-row { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 5px; margin-bottom: 5px; }
+        .btn { cursor: pointer; border: none; border-radius: 4px; padding: 10px 15px; font-weight: bold; transition: opacity 0.2s; }
+        .btn-add-allow { background: #64748b; color: white; padding: 4px 8px; font-size: 0.75rem; margin-top: 5px; }
+        .btn-main { background: var(--primary); color: white; width: 100%; margin-top: 20px; }
+        .btn-export { background: var(--success); color: white; }
+        .btn-del { background: #ef4444; color: white; padding: 4px 8px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 0.8rem; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+        th { background: #e2e8f0; }
+        .status-ok { color: var(--success); font-weight: bold; }
+        .status-ng { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h1>📊 業務改善助成金・賃金計算管理台帳</h1>
+
+        <div class="exclusion-box">
+            <strong>⚠️ 計算対象外（入力禁止）：</strong> 通勤手当、家族手当、住宅手当(実費)、精皆勤手当、賞与、割増賃金(残業代)
+        </div>
+
+        <div class="config-panel">
+            <label>適用都道府県:</label>
+            <select id="global_pref" onchange="updateMinWage()"></select>
+            <span>現在の最低賃金: <strong id="min_wage_disp">---</strong> 円</span>
+        </div>
+
+        <div class="input-grid">
+            <div class="form-section">
+                <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">1. 従業員基本情報</h3>
+                <div class="form-group"><label>従業員コード</label><input type="text" id="emp_code" placeholder="例: 001"></div>
+                <div class="form-group"><label>氏名</label><input type="text" id="name" placeholder="例: 労働 太郎"></div>
+                <div class="form-group"><label>入社年月日</label><input type="date" id="hire_date"></div>
+                
+                <h3 style="margin-top:20px; border-left:4px solid var(--primary); padding-left:10px;">2. 時給・日給</h3>
+                <div class="form-group"><label>直接設定の時給額</label><input type="number" id="h_pay" value="0"></div>
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label>日給額</label><input type="number" id="d_pay" value="0"></div>
+                    <div><label>1日所定労働時間</label><input type="number" id="d_hours" value="8"></div>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">3. 月給・算入手当</h3>
+                <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><label>基本給 (月額)</label><input type="number" id="base_pay" value="0"></div>
+                    <div><label>月平均所定労働時間</label><input type="number" id="m_hours" value="160"></div>
+                </div>
+                
+                <label>算入可能手当（役職・職務・固定住宅・地域・資格・固定営業・食事手当）</label>
+                <div id="allowance_container"></div>
+                <button class="btn btn-add-allow" onclick="addAllowance()">＋ 手当を追加</button>
+
+                <button class="btn btn-main" onclick="addEmployee()">計算結果をリストに追加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>👥 従業員賃金計算一覧</h2>
+            <button class="btn btn-export" onclick="exportToCSV()">Excel用CSV出力</button>
+        </div>
+        <div style="overflow-x:auto;">
+            <table id="emp_table">
+                <thead>
+                    <tr>
+                        <th>コード</th>
+                        <th>氏名</th>
+                        <th>入社日</th>
+                        <th>月換算</th>
+                        <th>日換算</th>
+                        <th>時給</th>
+                        <th>合計換算額</th>
+                        <th>判定</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 2026.4.9現在 確定最低賃金額（ご提示資料に基づく）
+const minWages = {
+    "東京都":1226, "神奈川県":1225, "大阪府":1177, "埼玉県":1141, "千葉県":1140, "愛知県":1140, 
+    "京都府":1122, "兵庫県":1116, "静岡県":1097, "三重県":1087, "広島県":1085, "滋賀県":1080, 
+    "北海道":1075, "茨城県":1074, "栃木県":1068, "岐阜県":1065, "群馬県":1063, "富山県":1062, 
+    "長野県":1061, "福岡県":1057, "石川県":1054, "福井県":1053, "山梨県":1052, "奈良県":1051, 
+    "岡山県":1050, "山口県":1047, "徳島県":1046, "和歌山県":1045, "香川県":1036, "大分県":1035, 
+    "熊本県":1034, "島根県":1033, "新潟県":1033, "山形県":1032, "秋田県":1031, "岩手県":1031, 
+    "長崎県":1031, "福島県":1030, "佐賀県":1030, "鳥取県":1030, "青森県":1029, "鹿児島県":1026, 
+    "宮崎県":1023, "沖縄県":1023, "高知県":1023
+};
+
+const allowanceOptions = ["役職手当", "職務手当", "住宅手当(固定)", "地域手当", "資格手当", "営業手当(固定)", "食事手当(固定)"];
+let employees = [];
+
+function init() {
+    const sel = document.getElementById('global_pref');
+    Object.keys(minWages).sort().forEach(p => {
+        let o = document.createElement('option'); o.value = p; o.text = p;
+        if(p === "東京都") o.selected = true;
+        sel.appendChild(o);
+    });
+    updateMinWage();
+}
+
+function updateMinWage() {
+    document.getElementById('min_wage_disp').innerText = minWages[document.getElementById('global_pref').value];
+}
+
+function addAllowance() {
+    const container = document.getElementById('allowance_container');
+    const div = document.createElement('div');
+    div.className = 'allowance-row';
+    let opts = allowanceOptions.map(o => `<option>${o}</option>`).join('');
+    div.innerHTML = `<select>${opts}</select><input type="number" class="allow_val" value="0"><button class="btn btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    container.appendChild(div);
+}
+
+function addEmployee() {
+    const code = document.getElementById('emp_code').value;
+    const name = document.getElementById('name').value;
+    const hireDate = document.getElementById('hire_date').value;
+    if(!name) { alert("氏名を入力してください"); return; }
+
+    const mHours = parseFloat(document.getElementById('m_hours').value) || 0;
+    const basePay = parseFloat(document.getElementById('base_pay').value) || 0;
+    let allowSum = 0;
+    document.querySelectorAll('.allow_val').forEach(el => allowSum += parseFloat(el.value) || 0);
+
+    const mEquivalent = mHours > 0 ? (basePay + allowSum) / mHours : 0;
+    const dPay = parseFloat(document.getElementById('d_pay').value) || 0;
+    const dHours = parseFloat(document.getElementById('d_hours').value) || 1;
+    const dEquivalent = dPay / dHours;
+    const hPay = parseFloat(document.getElementById('h_pay').value) || 0;
+
+    const total = Math.floor(mEquivalent + dEquivalent + hPay);
+    const minWage = minWages[document.getElementById('global_pref').value];
+
+    employees.push({ code, name, hireDate, basePay, allowSum, mHours, mEquivalent, dPay, dHours, dEquivalent, hPay, total, minWage });
+    renderTable();
+    
+    // クリア
+    document.getElementById('emp_code').value = "";
+    document.getElementById('name').value = "";
+    document.getElementById('allowance_container').innerHTML = "";
+}
+
+function renderTable() {
+    const tbody = document.getElementById('emp_table').querySelector('tbody');
+    tbody.innerHTML = "";
+    employees.forEach((e, i) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${e.code}</td><td>${e.name}</td><td>${e.hireDate}</td>
+            <td>${Math.floor(e.mEquivalent)}円</td><td>${Math.floor(e.dEquivalent)}円</td><td>${e.hPay}円</td>
+            <td><strong>${e.total.toLocaleString()}円</strong></td>
+            <td class="${e.total >= e.minWage ? 'status-ok' : 'status-ng'}">${e.total >= e.minWage ? 'クリア' : '不足'}</td>
+            <td><button class="btn btn-del" onclick="employees.splice(${i},1); renderTable();">削除</button></td>
+        `;
+    });
+}
+
+function exportToCSV() {
+    if(employees.length === 0) return;
+    let csv = "\uFEFFコード,氏名,入社年月日,基本給,手当計,月平均労働時間,月換算,日給,1日所定,日換算,直接時給,最終換算額,判定\n";
+    employees.forEach(e => {
+        csv += `${e.code},${e.name},${e.hireDate},${e.basePay},${e.allowSum},${e.mHours},${Math.floor(e.mEquivalent)},${e.dPay},${e.dHours},${Math.floor(e.dEquivalent)},${e.hPay},${e.total},${e.total >= e.minWage ? "OK" : "不足"}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "賃金計算名簿.csv";
+    link.click();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
