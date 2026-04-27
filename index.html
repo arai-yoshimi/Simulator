@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>業務改善助成金・賃金計算管理台帳（従業員コード対応）</title>
+    <title>業務改善助成金・賃金計算管理台帳（手当合算対応版）</title>
     <style>
         :root { --primary: #0369a1; --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --danger: #dc2626; --success: #16a34a; }
         body { font-family: sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; font-size: 14px; }
@@ -32,16 +32,17 @@
         th { background: #e2e8f0; }
         .status-ok { color: var(--success); font-weight: bold; }
         .status-ng { color: var(--danger); font-weight: bold; }
+        .small-note { font-size: 0.7rem; color: #64748b; font-weight: normal; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <h1>📊 業務改善助成金・賃金計算管理台帳</h1>
+        <h1>📊 賃金計算管理台帳（手当合算対応）</h1>
 
         <div class="exclusion-box">
-            <strong>⚠️ 計算対象外（入力禁止）：</strong> 通勤手当、家族手当、住宅手当(実費)、精皆勤手当、賞与、割増賃金(残業代)
+            <strong>⚠️ 含めない手当 ：</strong> 通勤手当、家族手当、住宅手当(実費分)、精皆勤手当、賞与、残業代等
         </div>
 
         <div class="config-panel">
@@ -53,26 +54,29 @@
         <div class="input-grid">
             <div class="form-section">
                 <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">1. 従業員基本情報</h3>
-                <div class="form-group"><label>従業員コード</label><input type="text" id="emp_code" placeholder="例: 001"></div>
-                <div class="form-group"><label>氏名</label><input type="text" id="name" placeholder="例: 労働 太郎"></div>
+                <div class="form-group"><label>従業員コード</label><input type="text" id="emp_code" placeholder="001"></div>
+                <div class="form-group"><label>氏名</label><input type="text" id="name" placeholder="労働 太郎"></div>
                 <div class="form-group"><label>入社年月日</label><input type="date" id="hire_date"></div>
                 
                 <h3 style="margin-top:20px; border-left:4px solid var(--primary); padding-left:10px;">2. 時給・日給</h3>
-                <div class="form-group"><label>直接設定の時給額</label><input type="number" id="h_pay" value="0"></div>
+                <div class="form-group">
+                    <label>基本時給 (円)</label>
+                    <input type="number" id="h_pay" value="0">
+                </div>
                 <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label>日給額</label><input type="number" id="d_pay" value="0"></div>
+                    <div><label>基本日給 (円)</label><input type="number" id="d_pay" value="0"></div>
                     <div><label>1日所定労働時間</label><input type="number" id="d_hours" value="8"></div>
                 </div>
             </div>
 
             <div>
-                <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">3. 月給・算入手当</h3>
+                <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">3. 月給・固定手当 <span class="small-note">※時給者も月の手当がある場合は入力</span></h3>
                 <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><label>基本給 (月額)</label><input type="number" id="base_pay" value="0"></div>
-                    <div><label>月平均所定労働時間</label><input type="number" id="m_hours" value="160"></div>
+                    <div><label>基本月給 (円)</label><input type="number" id="base_pay" value="0"></div>
+                    <div><label>月平均所定労働時間 (h)</label><input type="number" id="m_hours" value="160"></div>
                 </div>
                 
-                <label>算入可能手当（役職・職務・固定住宅・地域・資格・固定営業・食事手当）</label>
+                <label>固定手当（月額） <span class="small-note">役職・職務・固定住宅・資格・営業・食事等</span></label>
                 <div id="allowance_container"></div>
                 <button class="btn btn-add-allow" onclick="addAllowance()">＋ 手当を追加</button>
 
@@ -93,10 +97,10 @@
                         <th>コード</th>
                         <th>氏名</th>
                         <th>入社日</th>
-                        <th>月換算</th>
-                        <th>日換算</th>
-                        <th>時給</th>
-                        <th>合計換算額</th>
+                        <th>月給換算</th>
+                        <th>日給換算</th>
+                        <th>基本時給</th>
+                        <th>最終時給換算額</th>
                         <th>判定</th>
                         <th>操作</th>
                     </tr>
@@ -108,7 +112,7 @@
 </div>
 
 <script>
-// 2026.4.9現在 確定最低賃金額（ご提示資料に基づく）
+/** 2025年度(2026.4.9現在) 確定最低賃金額  **/
 const minWages = {
     "東京都":1226, "神奈川県":1225, "大阪府":1177, "埼玉県":1141, "千葉県":1140, "愛知県":1140, 
     "京都府":1122, "兵庫県":1116, "静岡県":1097, "三重県":1087, "広島県":1085, "滋賀県":1080, 
@@ -142,7 +146,7 @@ function addAllowance() {
     const div = document.createElement('div');
     div.className = 'allowance-row';
     let opts = allowanceOptions.map(o => `<option>${o}</option>`).join('');
-    div.innerHTML = `<select>${opts}</select><input type="number" class="allow_val" value="0"><button class="btn btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    div.innerHTML = `<select>${opts}</select><input type="number" class="allow_val" value="0" oninput="calcPreview()"><button class="btn btn-del" onclick="this.parentElement.remove()">✕</button>`;
     container.appendChild(div);
 }
 
@@ -157,12 +161,17 @@ function addEmployee() {
     let allowSum = 0;
     document.querySelectorAll('.allow_val').forEach(el => allowSum += parseFloat(el.value) || 0);
 
+    // ロジック修正：基本月給がある場合も、ない場合も (基本月給 + 固定手当) / 月平均労働時間 で計算
+    // これにより時給者の「月額手当」も正しく時給換算に加算される
     const mEquivalent = mHours > 0 ? (basePay + allowSum) / mHours : 0;
+    
     const dPay = parseFloat(document.getElementById('d_pay').value) || 0;
     const dHours = parseFloat(document.getElementById('d_hours').value) || 1;
     const dEquivalent = dPay / dHours;
+    
     const hPay = parseFloat(document.getElementById('h_pay').value) || 0;
 
+    // すべての要素を合算して最終時給を算出
     const total = Math.floor(mEquivalent + dEquivalent + hPay);
     const minWage = minWages[document.getElementById('global_pref').value];
 
@@ -173,6 +182,9 @@ function addEmployee() {
     document.getElementById('emp_code').value = "";
     document.getElementById('name').value = "";
     document.getElementById('allowance_container').innerHTML = "";
+    document.getElementById('h_pay').value = 0;
+    document.getElementById('d_pay').value = 0;
+    document.getElementById('base_pay').value = 0;
 }
 
 function renderTable() {
@@ -182,7 +194,9 @@ function renderTable() {
         const row = tbody.insertRow();
         row.innerHTML = `
             <td>${e.code}</td><td>${e.name}</td><td>${e.hireDate}</td>
-            <td>${Math.floor(e.mEquivalent)}円</td><td>${Math.floor(e.dEquivalent)}円</td><td>${e.hPay}円</td>
+            <td>${Math.floor(e.mEquivalent)}円 <br><small>(月額分換算)</small></td>
+            <td>${Math.floor(e.dEquivalent)}円</td>
+            <td>${e.hPay}円</td>
             <td><strong>${e.total.toLocaleString()}円</strong></td>
             <td class="${e.total >= e.minWage ? 'status-ok' : 'status-ng'}">${e.total >= e.minWage ? 'クリア' : '不足'}</td>
             <td><button class="btn btn-del" onclick="employees.splice(${i},1); renderTable();">削除</button></td>
@@ -192,14 +206,14 @@ function renderTable() {
 
 function exportToCSV() {
     if(employees.length === 0) return;
-    let csv = "\uFEFFコード,氏名,入社年月日,基本給,手当計,月平均労働時間,月換算,日給,1日所定,日換算,直接時給,最終換算額,判定\n";
+    let csv = "\uFEFFコード,氏名,入社年月日,基本月給,手当計,月平均時間,月換算,基本日給,1日労働時間,日換算,基本時給,最終時給換算額,判定\n";
     employees.forEach(e => {
         csv += `${e.code},${e.name},${e.hireDate},${e.basePay},${e.allowSum},${e.mHours},${Math.floor(e.mEquivalent)},${e.dPay},${e.dHours},${Math.floor(e.dEquivalent)},${e.hPay},${e.total},${e.total >= e.minWage ? "OK" : "不足"}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "賃金計算名簿.csv";
+    link.download = "賃金計算リスト.csv";
     link.click();
 }
 
