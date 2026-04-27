@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>業務改善助成金・賃金計算＆受給額シミュレーター</title>
+    <title>業務改善助成金シミュレーター 2026年度版</title>
     <style>
         :root { --primary: #0369a1; --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --danger: #dc2626; --success: #16a34a; --subsidy: #f59e0b; }
         body { font-family: sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; font-size: 14px; }
@@ -22,7 +22,6 @@
         
         .btn { cursor: pointer; border: none; border-radius: 4px; padding: 10px 15px; font-weight: bold; }
         .btn-main { background: var(--primary); color: white; width: 100%; margin-top: 20px; }
-        .btn-subsidy { background: var(--subsidy); color: white; width: 100%; margin-top: 20px; }
         .btn-export { background: var(--success); color: white; }
         .btn-del { background: #ef4444; color: white; padding: 4px 8px; }
 
@@ -30,9 +29,9 @@
         th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
         th { background: #e2e8f0; }
         
-        /* 助成金結果表示 */
         .subsidy-result { background: #fffbeb; border: 2px solid var(--subsidy); border-radius: 10px; padding: 20px; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .subsidy-val { font-size: 2rem; font-weight: 800; color: #92400e; }
+        .status-ng { color: var(--danger); font-weight: bold; }
         .small-note { font-size: 0.75rem; color: #64748b; font-weight: normal; }
     </style>
 </head>
@@ -40,10 +39,10 @@
 
 <div class="container">
     <div class="card">
-        <h1>📊 賃金計算＆業務改善助成金シミュレーター</h1>
+        <h1>📊 賃金計算＆業務改善助成金シミュレーター (2026年度版)</h1>
 
         <div class="exclusion-box">
-            <strong>⚠️ 計算除外（入力禁止）：</strong> 通勤・家族・住宅(実費)・精皆勤・賞与・残業代 
+            <strong>⚠️ 計算除外（入力禁止）：</strong> 通勤・家族・住宅(実費)・精皆勤・賞与・残業代
         </div>
 
         <div class="config-panel">
@@ -55,24 +54,24 @@
         <div class="input-grid">
             <div class="form-section">
                 <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">1. 賃金計算（従業員登録）</h3>
-                <div class="form-group"><label>従業員コード / 氏名</label><input type="text" id="emp_id" placeholder="コード 氏名"></div>
-                <div class="form-group"><label>基本給 / 月平均労働時間</label>
+                <div class="form-group"><label>従業員コード / 氏名</label><input type="text" id="emp_id" placeholder="001 労働太郎"></div>
+                <div class="form-group"><label>基本給 (月額) / 月平均労働時間</label>
                     <div style="display:flex; gap:5px;"><input type="number" id="base_pay" value="0"> <input type="number" id="m_hours" value="160"></div>
                 </div>
                 <div class="form-group"><label>基本時給 / 基本日給</label>
                     <div style="display:flex; gap:5px;"><input type="number" id="h_pay" value="0"> <input type="number" id="d_pay" value="0"></div>
                 </div>
-                <button class="btn btn-main" onclick="addEmployee()">計算してリストに追加</button>
+                <button class="btn btn-main" onclick="addEmployee()">リストに追加</button>
             </div>
 
             <div>
                 <h3 style="margin-top:0; border-left:4px solid var(--subsidy); padding-left:10px;">2. 助成金受給額シミュレーター</h3>
                 <div class="form-group">
                     <label>事業場内最低賃金 (現在)</label>
-                    <input type="number" id="current_internal_min" placeholder="現在の事業場で一番低い時給" oninput="calcSubsidy()">
+                    <input type="number" id="current_internal_min" placeholder="一番低い人の時給" oninput="calcSubsidy()">
                 </div>
                 <div class="form-group">
-                    <label>賃上げ額（コース選択） </label>
+                    <label>賃上げコース</label>
                     <select id="raise_course" onchange="calcSubsidy()">
                         <option value="30">30円コース</option>
                         <option value="45">45円コース</option>
@@ -85,20 +84,20 @@
                     <input type="number" id="raise_emp_count" value="1" min="1" oninput="calcSubsidy()">
                 </div>
                 <div class="form-group">
-                    <label>設備投資額 (税抜/税込は経理方式による)</label>
+                    <label>設備投資額 (税抜)</label>
                     <input type="number" id="invest_amount" value="0" oninput="calcSubsidy()">
                 </div>
             </div>
         </div>
 
-        <div class="subsidy-result" id="subsidy_area">
+        <div class="subsidy-result">
             <div>
-                <label>適用助成率 </label>
-                <div id="subsidy_rate_disp" style="font-weight:bold; font-size:1.2rem;">---</div>
-                <div class="small-note">※900円未満:9/10, 950円未満:4/5, 950円以上:3/4</div>
+                <label>適用助成率 (2026年度基準)</label>
+                <div id="subsidy_rate_disp" style="font-weight:bold; font-size:1.2rem; color: var(--primary);">---</div>
+                <div class="small-note">1,000円未満:9/10, 1,050円未満:4/5, 1,050円以上:3/4</div>
             </div>
             <div>
-                <label>予想受給額 (上限判定あり) </label>
+                <label>予想受給額</label>
                 <div class="subsidy-val" id="subsidy_amount_disp">0 <small>円</small></div>
                 <div class="small-note" id="limit_note">助成限度額: ---</div>
             </div>
@@ -112,7 +111,7 @@
         </div>
         <table id="emp_table">
             <thead>
-                <tr><th>従業員</th><th>月換算</th><th>日換算</th><th>時給</th><th>合計換算額</th><th>判定</th><th>操作</th></tr>
+                <tr><th>従業員</th><th>月換算</th><th>日換算</th><th>時給</th><th>合計時給</th><th>判定</th><th>操作</th></tr>
             </thead>
             <tbody></tbody>
         </table>
@@ -135,8 +134,7 @@ function init() {
 }
 
 function updateMinWage() {
-    const prefMin = minWages[document.getElementById('global_pref').value];
-    document.getElementById('min_wage_disp').innerText = prefMin;
+    document.getElementById('min_wage_disp').innerText = minWages[document.getElementById('global_pref').value];
 }
 
 function calcSubsidy() {
@@ -145,14 +143,14 @@ function calcSubsidy() {
     const empCount = parseInt(document.getElementById('raise_emp_count').value) || 0;
     const invest = parseFloat(document.getElementById('invest_amount').value) || 0;
 
-    // 1. 助成率の判定 
+    // 助成率判定 (2026年度版基準)
     let rate = 0.75;
     let rateStr = "3/4 (75%)";
-    if (internalMin < 900) { rate = 0.9; rateStr = "9/10 (90%)"; }
-    else if (internalMin < 950) { rate = 0.8; rateStr = "4/5 (80%)"; }
+    if (internalMin < 1000) { rate = 0.9; rateStr = "9/10 (90%)"; }
+    else if (internalMin < 1050) { rate = 0.8; rateStr = "4/5 (80%)"; }
     document.getElementById('subsidy_rate_disp').innerText = rateStr;
 
-    // 2. 助成上限額の判定マトリックス 
+    // 上限額テーブル
     const limits = {
         30: [300000, 500000, 700000, 900000, 1300000],
         45: [450000, 800000, 1100000, 1500000, 1900000],
@@ -160,19 +158,16 @@ function calcSubsidy() {
         90: [900000, 1500000, 2500000, 3800000, 6000000]
     };
     
-    let countIdx = 0; // 1人
-    if (empCount >= 10) countIdx = 4;
-    else if (empCount >= 7) countIdx = 3;
-    else if (empCount >= 4) countIdx = 2;
-    else if (empCount >= 2) countIdx = 1;
+    let cIdx = 0;
+    if (empCount >= 10) cIdx = 4;
+    else if (empCount >= 7) cIdx = 3;
+    else if (empCount >= 4) cIdx = 2;
+    else if (empCount >= 2) cIdx = 1;
 
-    const limit = limits[raiseCourse][countIdx];
+    const limit = limits[raiseCourse][cIdx];
     document.getElementById('limit_note').innerText = "助成限度額: " + limit.toLocaleString() + " 円";
 
-    // 3. 支給額計算： min(投資額*助成率, 上限額) 
-    let calcAmount = Math.floor(invest * rate);
-    const finalAmount = Math.min(calcAmount, limit);
-
+    const finalAmount = Math.min(Math.floor(invest * rate), limit);
     document.getElementById('subsidy_amount_disp').innerHTML = finalAmount.toLocaleString() + " <small>円</small>";
 }
 
@@ -182,13 +177,9 @@ function addEmployee() {
     const mHours = parseFloat(document.getElementById('m_hours').value) || 160;
     const hPay = parseFloat(document.getElementById('h_pay').value) || 0;
     const dPay = parseFloat(document.getElementById('d_pay').value) || 0;
-    
-    const mEquiv = base / mHours;
-    const dEquiv = dPay / 8;
-    const total = Math.floor(mEquiv + dEquiv + hPay);
-    const minWage = minWages[document.getElementById('global_pref').value];
-
-    employees.push({ idName, mEquiv, dEquiv, hPay, total, minWage });
+    const total = Math.floor((base / mHours) + (dPay / 8) + hPay);
+    const minW = minWages[document.getElementById('global_pref').value];
+    employees.push({ idName, mVal: base/mHours, dVal: dPay/8, hPay, total, minW });
     renderTable();
 }
 
@@ -197,18 +188,17 @@ function renderTable() {
     tbody.innerHTML = "";
     employees.forEach((e, i) => {
         const row = tbody.insertRow();
-        row.innerHTML = `<td>${e.idName}</td><td>${Math.floor(e.mEquiv)}円</td><td>${Math.floor(e.dEquiv)}円</td><td>${e.hPay}円</td><td><strong>${e.total}円</strong></td><td class="${e.total >= e.minWage ? '' : 'status-ng'}">${e.total >= e.minWage ? 'OK' : '不足'}</td><td><button class="btn btn-del" onclick="employees.splice(${i},1); renderTable();">✕</button></td>`;
+        row.innerHTML = `<td>${e.idName}</td><td>${Math.floor(e.mVal)}円</td><td>${Math.floor(e.dVal)}円</td><td>${e.hPay}円</td><td><strong>${e.total}円</strong></td><td class="${e.total >= e.minW ? '' : 'status-ng'}">${e.total >= e.minW ? 'OK' : '不足'}</td><td><button class="btn btn-del" onclick="employees.splice(${i},1); renderTable();">✕</button></td>`;
     });
 }
 
 function exportToCSV() {
-    let csv = "\uFEFF従業員,月換算,日換算,時給,合計換算額,判定\n";
-    employees.forEach(e => csv += `${e.idName},${Math.floor(e.mEquiv)},${Math.floor(e.dEquiv)},${e.hPay},${e.total},${e.total >= e.minWage ? 'OK' : '不足'}\n`);
+    let csv = "\uFEFF従業員,月換算,日換算,時給,合計,判定\n";
+    employees.forEach(e => csv += `${e.idName},${Math.floor(e.mVal)},${Math.floor(e.dVal)},${e.hPay},${e.total},${e.total >= e.minW ? 'OK' : '不足'}\n`);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob); link.download = "賃金計算リスト.csv"; link.click();
 }
-
 window.onload = init;
 </script>
 </body>
