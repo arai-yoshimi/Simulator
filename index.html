@@ -6,7 +6,7 @@
     <title>業務改善助成金・統合管理シミュレーター</title>
     <style>
         :root { --primary: #0369a1; --bg: #f8fafc; --card: #ffffff; --border: #cbd5e1; --danger: #dc2626; --success: #16a34a; --subsidy: #f59e0b; }
-        body { font-family: sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; font-size: 14px; }
+        body { font-family: sans-serif; background-color: var(--bg); color: #1e293b; padding: 20px; font-size: 13px; }
         .container { max-width: 1200px; margin: 0 auto; }
         .card { background: var(--card); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 25px; margin-bottom: 20px; border: 1px solid var(--border); }
         h1 { font-size: 1.4rem; color: #0c4a6e; text-align: center; margin-bottom: 20px; border-bottom: 3px solid var(--primary); padding-bottom: 10px; }
@@ -14,9 +14,9 @@
         .exclusion-box { background: #fff1f2; border: 1px solid #fda4af; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.8rem; color: #991b1b; }
         .config-panel { background: #f0f9ff; border: 1px solid var(--primary); padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
         
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .input-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px; }
         .form-section { border-right: 1px solid #e2e8f0; padding-right: 20px; }
-        .form-group { margin-bottom: 12px; }
+        .form-group { margin-bottom: 10px; }
         label { display: block; font-weight: bold; font-size: 0.85rem; color: #475569; margin-bottom: 4px; }
         input, select { width: 100%; padding: 8px; border: 1px solid #94a3b8; border-radius: 4px; box-sizing: border-box; }
         
@@ -42,24 +42,24 @@
 
 <div class="container">
     <div class="card">
-        <h1>📊 賃金計算・管理 & 助成金シミュレーター</h1>
+        <h1>📊 賃金管理・助成金シミュレーター (2026年4月対応版)</h1>
 
         <div class="exclusion-box">
-            <strong>⚠️ 計算除外（入力不可）：</strong> 通勤手当、家族手当、住宅手当(実費)、精皆勤手当、賞与、残業代
+            <strong>⚠️ 計算除外（入力不可）：</strong> 通勤手当、家族手当、住宅手当(実費)、精皆勤手当、賞与、残業代等
         </div>
 
         <div class="config-panel">
             <label>適用都道府県:</label>
             <select id="global_pref" onchange="updateMinWage()"></select>
-            <span>現在の地域最低賃金: <strong id="min_wage_disp">---</strong> 円</span>
+            <span>現在の最低賃金: <strong id="min_wage_disp">---</strong> 円</span>
         </div>
 
         <div class="input-grid">
             <div class="form-section">
                 <h3 style="margin-top:0; border-left:4px solid var(--primary); padding-left:10px;">1. 従業員賃金計算登録</h3>
                 <div class="form-group" style="display:grid; grid-template-columns:0.8fr 1.2fr; gap:10px;">
-                    <div><label>従業員コード</label><input type="text" id="emp_code" placeholder="001"></div>
-                    <div><label>氏名</label><input type="text" id="name" placeholder="労働太郎"></div>
+                    <div><label>従業員コード</label><input type="text" id="emp_code"></div>
+                    <div><label>氏名</label><input type="text" id="name"></div>
                 </div>
                 <div class="form-group"><label>入社年月日</label><input type="date" id="hire_date"></div>
                 
@@ -68,27 +68,27 @@
                     <div><label>月平均所定労働時間 (h)</label><input type="number" id="m_hours" value="160"></div>
                 </div>
                 
-                <label>算入可能な固定手当 (月額)</label>
+                <label>算入可能な固定手当 (月額額)</label>
                 <div id="allowance_container"></div>
-                <button class="btn btn-add-allow" onclick="addAllowance()">＋ 手当を追加</button>
+                <button type="button" class="btn btn-add-allow" onclick="addAllowance()">＋ 手当を追加</button>
 
-                <div class="form-group" style="margin-top:15px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                <div class="form-group" style="margin-top:15px; display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:10px;">
                     <div><label>基本時給</label><input type="number" id="h_pay" value="0"></div>
                     <div><label>基本日給</label><input type="number" id="d_pay" value="0"></div>
                     <div><label>1日所定h</label><input type="number" id="d_hours" value="8"></div>
                 </div>
                 
-                <button class="btn btn-main" onclick="addEmployee()">計算結果をリストに追加</button>
+                <button type="button" class="btn btn-main" onclick="addEmployee()">計算結果をリストに追加</button>
             </div>
 
             <div>
-                <h3 style="margin-top:0; border-left:4px solid var(--subsidy); padding-left:10px;">2. 助成金受給額予想</h3>
+                <h3 style="margin-top:0; border-left:4px solid var(--subsidy); padding-left:10px;">2. 助成金受給額予想 (2026年度版)</h3>
                 <div class="form-group">
-                    <label>事業場内最低賃金 (現在)</label>
-                    <input type="number" id="current_internal_min" placeholder="一番低い人の時給換算額" oninput="calcSubsidy()">
+                    <label>事業場内最低賃金 (現在時給)</label>
+                    <input type="number" id="current_internal_min" placeholder="一番低い人の換算額" oninput="calcSubsidy()">
                 </div>
                 <div class="form-group">
-                    <label>賃上げコースを選択</label>
+                    <label>賃上げコース</label>
                     <select id="raise_course" onchange="calcSubsidy()">
                         <option value="30">30円コース</option>
                         <option value="45">45円コース</option>
@@ -97,7 +97,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>賃上げ対象人数</label>
+                    <label>対象人数</label>
                     <input type="number" id="raise_emp_count" value="1" min="1" oninput="calcSubsidy()">
                 </div>
                 <div class="form-group">
@@ -107,14 +107,14 @@
 
                 <div class="subsidy-result">
                     <div>
-                        <label>適用助成率 (2026年度基準)</label>
+                        <label>適用助成率</label>
                         <div id="subsidy_rate_disp" style="font-weight:bold; font-size:1.1rem; color: var(--primary);">---</div>
-                        <div class="small-note">1,000円未満:9/10, 1,050円未満:4/5</div>
+                        <div class="small-note">1,000円未満: 9/10, 1,050円未満: 4/5</div>
                     </div>
                     <div>
                         <label>予想受給額</label>
                         <div class="subsidy-val" id="subsidy_amount_disp">0 <small>円</small></div>
-                        <div class="small-note" id="limit_note">助成限度額: ---</div>
+                        <div class="small-note" id="limit_note">上限額: ---</div>
                     </div>
                 </div>
             </div>
@@ -124,70 +124,6 @@
     <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h2>👥 従業員賃金計算一覧</h2>
-            <button class="btn btn-export" onclick="exportToCSV()">Excel用CSVで出力</button>
+            <button type="button" class="btn btn-export" onclick="exportToCSV()">Excel用CSVで出力</button>
         </div>
-        <table id="emp_table">
-            <thead>
-                <tr>
-                    <th>コード</th><th>氏名</th><th>入社日</th><th>月換算</th><th>日換算</th><th>時給</th><th>合計換算額</th><th>判定</th><th>操作</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-/** 2026.4.9現在 確定最低賃金額 **/
-const minWages = {
-    "東京都":1226, "神奈川県":1225, "大阪府":1177, "埼玉県":1141, "千葉県":1140, "愛知県":1140, "京都府":1122, "兵庫県":1116, "静岡県":1097, "三重県":1087, "滋賀県":1080, "広島県":1085, "北海道":1075, "茨城県":1074, "栃木県":1068, "岐阜県":1065, "群馬県":1063, "富山県":1062, "長野県":1061, "福岡県":1057, "石川県":1054, "福井県":1053, "山梨県":1052, "奈良県":1051, "岡山県":1050, "山口県":1047, "徳島県":1046, "和歌山県":1045, "香川県":1036, "大分県":1035, "熊本県":1034, "島根県":1033, "新潟県":1033, "山形県":1032, "秋田県":1031, "岩手県":1031, "長崎県":1031, "福島県":1030, "佐賀県":1030, "鳥取県":1030, "青森県":1029, "鹿児島県":1026, "宮崎県":1023, "沖縄県":1023, "高知県":1023
-};
-
-const allowanceOptions = ["役職手当", "職務手当", "資格手当", "地域手当", "住宅手当(固定)", "営業手当(固定)", "食事手当(固定)"];
-let employees = [];
-
-function init() {
-    const sel = document.getElementById('global_pref');
-    Object.keys(minWages).sort().forEach(p => {
-        let o = document.createElement('option'); o.value = p; o.text = p;
-        if(p === "東京都") o.selected = true;
-        sel.appendChild(o);
-    });
-    updateMinWage();
-}
-
-function updateMinWage() {
-    document.getElementById('min_wage_disp').innerText = minWages[document.getElementById('global_pref').value];
-}
-
-function addAllowance() {
-    const container = document.getElementById('allowance_container');
-    const div = document.createElement('div');
-    div.className = 'allowance-row';
-    let opts = allowanceOptions.map(o => `<option>${o}</option>`).join('');
-    div.innerHTML = `<select>${opts}</select><input type="number" class="allow_val" value="0"><button class="btn btn-del" onclick="this.parentElement.remove()">✕</button>`;
-    container.appendChild(div);
-}
-
-/** 従業員賃金計算ロジック（変更なし） **/
-function addEmployee() {
-    const code = document.getElementById('emp_code').value;
-    const name = document.getElementById('name').value;
-    const hireDate = document.getElementById('hire_date').value;
-    if(!name) { alert("氏名を入力してください"); return; }
-
-    const mHours = parseFloat(document.getElementById('m_hours').value) || 0;
-    const basePay = parseFloat(document.getElementById('base_pay').value) || 0;
-    let allowSum = 0;
-    document.querySelectorAll('.allow_val').forEach(el => allowSum += parseFloat(el.value) || 0);
-
-    const mEquivalent = mHours > 0 ? (basePay + allowSum) / mHours : 0;
-    const dPay = parseFloat(document.getElementById('d_pay').value) || 0;
-    const dHours = parseFloat(document.getElementById('d_hours').value) || 1;
-    const dEquivalent = dPay / dHours;
-    const hPay = parseFloat(document.getElementById('h_pay').value) || 0;
-
-    const total = Math.floor(mEquivalent + dEquivalent + hPay);
-    const minWage = minWages[document.getElementById('global_pref').value];
-
-    employees.push({ code
+        <table id="emp_table
